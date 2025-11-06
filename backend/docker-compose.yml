@@ -1,0 +1,75 @@
+name: sensor_data_hub
+services:
+  mysql:
+    image: mysql:oraclelinux9
+    container_name: mysql
+    ports:
+      - 3306:3306
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ../data/mysql/data:/var/lib/mysql
+      - ../data/mysql/conf.d:/etc/mysql/conf.d
+    user: "999:999"  # 使用MySQL用户ID避免权限问题
+    networks:
+      - sensor_data_hub_network
+
+  minio:
+   image: minio/minio:latest
+   container_name: minio
+   networks:
+    - sensor_data_hub_network
+   ports:
+    - 9000:9000
+    - 9001:9001
+   command:
+    - server
+    - /data
+    - --console-address 
+    - ":9001"
+   volumes:
+    - ../data/minio/data:/data
+    - ../data/minio/config:/root/.minio
+   environment:
+    - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+    - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  
+  influxdb3-core:
+    container_name: influxdb3
+    image: influxdb:3-core
+    ports:
+      - 8181:8181
+    command:
+      - influxdb3
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --plugin-dir=/var/lib/influxdb3/plugins
+    volumes:
+      - type: bind
+        source: ../data/influxdb3/data
+        target: /var/lib/influxdb3/data
+      - type: bind
+        source: ../data/influxdb3/plugins
+        target: /var/lib/influxdb3/plugins
+    networks:
+      - sensor_data_hub_network
+
+  influxdb3-ui:
+     image: influxdata/influxdb3-ui:latest
+     container_name: influxdb3-ui
+     ports:
+      - 8888:80
+      - 8889:8888
+     networks:
+      - sensor_data_hub_network
+    
+
+networks:
+    sensor_data_hub_network:
+      driver: bridge
