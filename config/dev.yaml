@@ -1,0 +1,22 @@
+mysql:
+  host: localhost
+  port: 3306
+  user: root
+  password: mysql666.
+  database: sensor_manage_hub
+  charset: utf8mb4
+  max_open_conns: 100
+  max_idle_conns: 10
+  max_lifetime: 5  # 单位:min
+
+influxdb:
+  host: http://localhost:8181
+  token: apiv3_E4PoHNQnb4wtkzDs7GUNvqaxxfWjtpUqo5Egu-wDrzvspUgbfFB14ahZey1PJCaWGU3lAis6sEAVInpVfjgwSg
+  database: sensor_ts_data
+
+minio:
+  endpoint: localhost:9000
+  access_key_id: admin
+  secret_access_key: minio@666
+  use_ssl: false
+  region: "us-east-1"
